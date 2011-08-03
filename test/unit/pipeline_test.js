@@ -9,38 +9,55 @@ var docs = {
 
 exports.theWholeShebang = function(beforeExit) {
   var loadFunction
+    , saveFunction
     , pipeline
     , conditionCalled = false
     , loadFunctionCalled = false
+    , saveFunctionCalled = false
     , calledback = false
     , handlerCalled = false
     , initialHandler 
     , aHandler
-    , aHandlerCalled = false;
+    , aHandlerCalled = false
+    , bHandlerCalled = false
+    , stateHandlerCalled = false
+    , jobId;
   
   initialHandler = function(doc, done) {
     assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
-    done(null);
+    done(null, doc);
   };
   
   aHandler = function(doc, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
-    done(null);
+    done(null, doc);
   };
   
   loadFunction = function(id, done) {
-    loadFunctionCalled = true
+    loadFunctionCalled = true;
+    assert.eql(2, id);
     process.nextTick(function() {
-      assert.eql(2, id);
       done(null, docs[id]);
     });
   };
   
-  pipeline = new Pipeline('test pipeline', { loadFunction: loadFunction });
+  saveFunction = function(doc, done) {
+    saveFunctionCalled = true;
+    process.nextTick(function() {
+      assert.eql(2, doc.id);
+      docs[doc.id] = doc;
+      done(null);
+    });
+  };
+  
+  pipeline = new Pipeline('test pipeline', {
+      load: loadFunction
+    , save: saveFunction
+  });
   pipeline.use('memory');
   pipeline.on('initial', initialHandler, {
       success: 'a'
@@ -54,16 +71,29 @@ exports.theWholeShebang = function(beforeExit) {
       success: 'b'
   });
   
+  pipeline.on('b', function() {
+    bHandlerCalled = true;
+    assert.ok(jobId);
+    pipeline.stateFor(jobId, function(err, state) {
+      stateHandlerCalled = true;
+      assert.equal('b', state);
+    })
+  });
+  
   pipeline.push({a:1, b:2, id: 2}, function(err, id) {
     calledback = true;
     assert.isNull(err);
     assert.equal('number', typeof(id));
+    jobId = id;
   });
   
   beforeExit(function() {
     assert.ok(handlerCalled);
     assert.ok(aHandlerCalled);
+    assert.ok(bHandlerCalled);
+    assert.ok(stateHandlerCalled);
     assert.ok(loadFunctionCalled);
+    assert.ok(saveFunctionCalled);
     assert.ok(conditionCalled);
     assert.ok(calledback);
   });

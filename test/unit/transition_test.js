@@ -4,7 +4,7 @@ var Transition = require('../../lib/transition')
 var noop = function() {};
 var handler = function(doc, done) {
   process.nextTick(function() {
-    done(null);
+    done(null, doc);
   });
 };
 
@@ -47,12 +47,16 @@ exports.testEvaluateUndefinedCondition = function() {
 exports.testTrigger = function(beforeExit) {
   var toStateCalled = false;
   var fromStateMock = {
-    toState: function(doc, stateDoc, newState) {
-      toStateCalled = true;
-      assert.eql({id: 1, a: 2}, doc);
-      assert.eql({state: 'a'}, stateDoc);
-      assert.eql('b', newState);
+      toState: function(doc, stateDoc, newState) {
+        toStateCalled = true;
+        assert.eql({id: 1, a: 2}, doc);
+        assert.eql({state: 'a'}, stateDoc);
+        assert.eql('b', newState);
+      }
+    , toErrorState: function(doc, stateDoc, error) {
+      assert.ok(false, error.message);
     }
+  
   };
   var transition = new Transition(fromStateMock, handler, 'b', 0);
   transition.trigger({id: 1, a: 2}, {state: 'a'})
