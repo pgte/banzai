@@ -6,7 +6,7 @@ var noop = function() {};
 exports.addsTransitions = function() {
   var state = new State('a')
     , transition;
-  state.addTransition(noop, 'b', 'error', 0);
+  state.addTransition(noop, 'b', 0);
   for(var i in state.transitions) {
     transition = state.transitions[i];
     assert.equal(state, transition.fromState);
@@ -18,15 +18,14 @@ exports.addsTransitions = function() {
   }
   assert.eql([{
       "successState":"b"
-    , "errorState":"error"
     , "priority":0 }], state.transitions);
 };
 
 exports.sortsTransitions = function() {
   var state = new State('a');
-  state.addTransition(noop, 'b', 'error', 0);
-  state.addTransition(noop, 'b', 'error', 10);
-  state.addTransition(noop, 'b', 'error', 20);
+  state.addTransition(noop, 'b', 0);
+  state.addTransition(noop, 'b', 10);
+  state.addTransition(noop, 'b', 20);
   for(var i in state.transitions) {
     transition = state.transitions[i];
     assert.equal(state, transition.fromState);
@@ -37,9 +36,9 @@ exports.sortsTransitions = function() {
     delete transition.condition
   }
   assert.eql([
-      {"successState":"b","errorState":"error","priority":20}
-    , {"successState":"b","errorState":"error","priority":10}
-    , {"successState":"b","errorState":"error","priority":0}
+      {"successState":"b","priority":20}
+    , {"successState":"b","priority":10}
+    , {"successState":"b","priority":0}
     ], state.transitions);
 };
 
@@ -53,8 +52,8 @@ exports.handles = function(beforeExit) {
     handlerCalled = true;
     assert.eql({a: 1, b: 2}, doc);
   };
-  state.addTransition(handler, 'b', 'error', 0);
-  state.addTransition(handler, 'c', 'error', 0);
+  state.addTransition(handler, 'b', 0);
+  state.addTransition(handler, 'c', 0);
   state.handle({a: 1, b: 2}, {state: 'a'});
   
   beforeExit(function() {
@@ -87,21 +86,20 @@ exports.toState = function(beforeExit) {
 exports.toErrorState = function(beforeExit) {
   var pipeline
     , state
-    , pipelineCalled = false
+    , toErrorStateCalled = false
     , error = new Error('hey!');
   
   pipeline = {
-    _toState: function(doc, stateDoc, state) {
-      pipelineCalled = true;
+    _toErrorState: function(doc, stateDoc, error) {
+      toErrorStateCalled = true;
       assert.eql({a:1, b:2}, doc);
-      assert.eql({state: 'a', errors: [error]}, stateDoc);
-      assert.eql('b', state);
+      assert.eql({state: 'a'}, stateDoc);
     }
   };
   state = new State('a', pipeline);
   state.toErrorState({a:1, b:2}, {state: 'a'}, 'b', error);
   
   beforeExit(function() {
-    assert.ok(pipelineCalled);
+    assert.ok(toErrorStateCalled);
   });
 };

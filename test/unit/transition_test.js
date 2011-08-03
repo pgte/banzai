@@ -15,13 +15,13 @@ var erroneousHandler = function(doc, done) {
 };
 
 exports.testEvaluateTrueCondition = function() {
-  var transition = new Transition('a', noop, 'b', 'c', 0, function(doc) { return doc.id === 'abc'; });
+  var transition = new Transition('a', noop, 'b', 0, function(doc) { return doc.id === 'abc'; });
   assert.eql(true, transition.evaluateCondition({id: 'abc'}));
   assert.eql(false, transition.evaluateCondition({id: 'cba'}));
 };
 
 exports.testEvaluateMultipleConditionsWhenAllTrue = function() {
-  var transition = new Transition('a', noop, 'b', 'c', 0, [
+  var transition = new Transition('a', noop, 'b', 0, [
       function(doc) { return doc.id == 'abc'; }
     , function(doc) { return doc.id.length === 3; }
   ]);
@@ -30,7 +30,7 @@ exports.testEvaluateMultipleConditionsWhenAllTrue = function() {
 };
 
 exports.testEvaluateMultipleConditionsWhenOneTrue = function() {
-  var transition = new Transition('a', noop, 'b', 'c', 0, [
+  var transition = new Transition('a', noop, 'b', 0, [
       function(doc) { return doc.id == 'abc'; }
     , function(doc) { return doc.id.length === 2; }
   ]);
@@ -39,7 +39,7 @@ exports.testEvaluateMultipleConditionsWhenOneTrue = function() {
 };
 
 exports.testEvaluateUndefinedCondition = function() {
-  var transition = new Transition('a', noop, 'b', 'c', 0);
+  var transition = new Transition('a', noop, 'b', 0);
   assert.eql(true, transition.evaluateCondition({id: 'abc'}));
   assert.eql(true, transition.evaluateCondition({id: 'cba'}));
 };
@@ -54,7 +54,7 @@ exports.testTrigger = function(beforeExit) {
       assert.eql('b', newState);
     }
   };
-  var transition = new Transition(fromStateMock, handler, 'b', 'c', 0);
+  var transition = new Transition(fromStateMock, handler, 'b', 0);
   transition.trigger({id: 1, a: 2}, {state: 'a'})
   
   beforeExit(function() {
@@ -65,15 +65,14 @@ exports.testTrigger = function(beforeExit) {
 exports.testTriggerWithErrorOnHandler = function(beforeExit) {
   var toErrorStateCalled = false;
   var fromStateMock = {
-    toErrorState: function(doc, stateDoc, newState, error) {
+    toErrorState: function(doc, stateDoc, error) {
       toErrorStateCalled = true;
       assert.eql({id: 1, a: 2}, doc);
       assert.eql({state: 'a'}, stateDoc);
-      assert.eql('c', newState);
       assert.eql('error just happened', error.message);
     }
   };
-  var transition = new Transition(fromStateMock, erroneousHandler, 'b', 'c', 0);
+  var transition = new Transition(fromStateMock, erroneousHandler, 'b', 0);
   transition.trigger({id: 1, a: 2}, {state: 'a'})
   
   beforeExit(function() {
