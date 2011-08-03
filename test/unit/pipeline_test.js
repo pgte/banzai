@@ -45,9 +45,9 @@ exports.theWholeShebang = function(beforeExit) {
   pipeline.on('initial', initialHandler, {
       success: 'a'
     , condition: function(doc) {
-      conditionCalled = true;
-      return true;
-    }
+        conditionCalled = true;
+        return true;
+      }
   });
 
   pipeline.on('a', aHandler, {
