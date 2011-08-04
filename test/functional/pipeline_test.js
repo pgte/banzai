@@ -1,4 +1,5 @@
 var Pipeline = require('../../lib/pipeline')
+  , config   = require('../config')
   , assert   = require('assert');
 
 var docs = {
@@ -24,14 +25,12 @@ exports.theWholeShebang = function(beforeExit) {
     , jobId;
   
   initialHandler = function(doc, done) {
-    assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
     done(null, doc);
   };
   
   aHandler = function(doc, done) {
-    assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
     done(null, doc);
@@ -59,31 +58,38 @@ exports.theWholeShebang = function(beforeExit) {
     , save: saveFunction
   });
   pipeline
-    .use('memory')
+    .use('couch', config.couch_db_uri)
     .on('initial', initialHandler, {
       success: 'a'
     , condition: function(doc) {
         conditionCalled = true;
         return true;
       }
-    })
-    .on('a', aHandler, {
+  });
+
+  pipeline.on('a', aHandler, {
       success: 'b'
+  });
+  
+  pipeline.on('b', function() {
+    bHandlerCalled = true;
+    assert.ok(jobId);
+    pipeline.stateFor(jobId, function(err, state) {
+      stateHandlerCalled = true;
+      assert.equal('b', state);
     })
-    .on('b', function() {
-      bHandlerCalled = true;
-      assert.ok(jobId);
-      pipeline.stateFor(jobId, function(err, state) {
-        stateHandlerCalled = true;
-        assert.equal('b', state);
-      })
-    })
-    .push({a:1, b:2, id: 2}, function(err, id) {
-      calledback = true;
-      assert.isNull(err);
-      assert.equal('number', typeof(id));
-      jobId = id;
-    });
+  });
+  
+  pipeline.on('error', function() {
+    console.log(arguments);
+  });
+  
+  pipeline.push({a:1, b:2, id: 2}, function(err, id) {
+    calledback = true;
+    assert.isNull(err);
+    assert.equal(32, id.length);
+    jobId = id;
+  });
   
   beforeExit(function() {
     assert.ok(handlerCalled);

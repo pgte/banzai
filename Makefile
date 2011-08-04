@@ -3,6 +3,9 @@ all: test
 unittests:
 	expresso -g test/unit/*_test.js
 
-test: unittests
+functionaltests:
+	expresso -g test/functional/*_test.js
+
+test: unittests functionaltests
 
 .PHONY: test

@@ -3,5 +3,6 @@
   , "version": "0.0.1"
   , "dependencies": {
       "request": "2.0.2"
+    , "follow": "0.1.0"
   }
 }
