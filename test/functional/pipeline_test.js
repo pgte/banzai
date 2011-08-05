@@ -8,7 +8,11 @@ var docs = {
   , 3: {a:5, b:6, id: 3}
 };
 
-exports.theWholeShebang = function(beforeExit) {
+setTimeout(function() {
+  process.exit();
+}, 10000);
+
+exports.withMetaInCouch = function(beforeExit) {
   var loadFunction
     , saveFunction
     , pipeline
@@ -58,38 +62,33 @@ exports.theWholeShebang = function(beforeExit) {
     , save: saveFunction
   });
   pipeline
-    .use('couch', config.couch_db_uri)
+    .useForMeta('couch', config.couch_db_uri)
     .on('initial', initialHandler, {
       success: 'a'
     , condition: function(doc) {
         conditionCalled = true;
         return true;
-      }
-  });
-
-  pipeline.on('a', aHandler, {
-      success: 'b'
-  });
-  
-  pipeline.on('b', function() {
-    bHandlerCalled = true;
-    assert.ok(jobId);
-    pipeline.stateFor(jobId, function(err, state) {
-      stateHandlerCalled = true;
-      assert.equal('b', state);
+      }})
+    .on('a', aHandler, {
+        success: 'b'
     })
-  });
-  
-  pipeline.on('error', function() {
-    console.log(arguments);
-  });
-  
-  pipeline.push({a:1, b:2, id: 2}, function(err, id) {
-    calledback = true;
-    assert.isNull(err);
-    assert.equal(32, id.length);
-    jobId = id;
-  });
+    .on('b', function() {
+      bHandlerCalled = true;
+      assert.ok(jobId);
+      pipeline.stateFor(jobId, function(err, state) {
+        stateHandlerCalled = true;
+        assert.equal('b', state);
+      })
+    })
+    .on('error', function() {
+      console.log(arguments);
+    })
+    .push({a:1, b:2, id: 2}, function(err, id) {
+      calledback = true;
+      assert.isNull(err);
+      assert.equal(32, id.length);
+      jobId = id;
+    });
   
   beforeExit(function() {
     assert.ok(handlerCalled);
