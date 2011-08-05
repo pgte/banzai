@@ -10,11 +10,11 @@ exports.addsTransitions = function() {
   for(var i in state.transitions) {
     transition = state.transitions[i];
     assert.equal(state, transition.fromState);
-    delete transition.fromState
+    delete transition.fromState;
     assert.equal(noop, transition.handler);
-    delete transition.handler
+    delete transition.handler;
     assert.equal(undefined, transition.condition);
-    delete transition.condition
+    delete transition.condition;
   }
   assert.eql([{
       "successState":"b"
@@ -29,11 +29,11 @@ exports.sortsTransitions = function() {
   for(var i in state.transitions) {
     transition = state.transitions[i];
     assert.equal(state, transition.fromState);
-    delete transition.fromState
+    delete transition.fromState;
     assert.equal(noop, transition.handler);
-    delete transition.handler
+    delete transition.handler;
     assert.equal(undefined, transition.condition);
-    delete transition.condition
+    delete transition.condition;
   }
   assert.eql([
       {"successState":"b","priority":20}
@@ -45,6 +45,7 @@ exports.sortsTransitions = function() {
 exports.handles = function(beforeExit) {
   var state   = new State('a')
     , handler
+    , cb = false
     , handlerCalled = false;
     
   handler = function(doc, callback) {
@@ -54,10 +55,14 @@ exports.handles = function(beforeExit) {
   };
   state.addTransition(handler, 'b', 0);
   state.addTransition(handler, 'c', 0);
-  state.handle({a: 1, b: 2}, {state: 'a'});
+  state.handle({a: 1, b: 2}, {state: 'a'}, function(err) {
+    cb = true;
+    assert.isNull(err);
+  });
   
   beforeExit(function() {
     assert.ok(handlerCalled);
+    assert.ok(cb);
   });
   
 };

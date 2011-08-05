@@ -61,7 +61,6 @@ exports.withMetaInMemory = function(beforeExit) {
   pipeline = new Pipeline('test pipeline 1', {
       load: loadFunction
     , save: saveFunction
-    , log: console.log
   });
   pipeline
     .use('memory')
@@ -167,7 +166,6 @@ exports.withoutMeta = function(beforeExit) {
     .on('stateB', function() {
       bHandlerCalled = true;
       assert.ok(jobId);
-      console.log('.state');
       pipeline.state(jobId, function(err, state) {
         console.log(state);
         assert.ok(! err);
@@ -175,7 +173,6 @@ exports.withoutMeta = function(beforeExit) {
       });
     })
     .push({a:1, b:2, id: 2}, function(err, id) {
-      console.log('pushed');
       assert.isNull(err);
       assert.ok(id);
       calledback = true;
@@ -199,8 +196,4 @@ exports.withoutMeta = function(beforeExit) {
     assert.ok(calledback);
     assert.ok(promiseFulfilled);
   });    
-};
-
-exports.withCustomMeta = function(beforeExit) {
-  assert.ok(false);
 };
