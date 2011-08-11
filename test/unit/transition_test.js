@@ -2,13 +2,13 @@ var Transition = require('../../lib/transition')
   , assert     = require('assert');
 
 var noop = function() {};
-var handler = function(doc, done) {
+var handler = function(doc, meta, done) {
   process.nextTick(function() {
     done(null, doc);
   });
 };
 
-var erroneousHandler = function(doc, done) {
+var erroneousHandler = function(doc, meta, done) {
   process.nextTick(function() {
     done(new Error('error just happened'));
   });
@@ -172,7 +172,7 @@ exports.testTrigger = function(beforeExit) {
       toState: function(doc, stateDoc, newState) {
         toStateCalled = true;
         assert.eql({id: 1, a: 2}, doc);
-        assert.eql({state: 'a'}, stateDoc);
+        assert.eql({state: 'a', meta: {}}, stateDoc);
         assert.eql('b', newState);
       }
     , toErrorState: function(doc, stateDoc, error) {
@@ -194,7 +194,7 @@ exports.testTriggerWithErrorOnHandler = function(beforeExit) {
     toErrorState: function(doc, stateDoc, error) {
       toErrorStateCalled = true;
       assert.eql({id: 1, a: 2}, doc);
-      assert.eql({state: 'a'}, stateDoc);
+      assert.eql({state: 'a', meta: {}}, stateDoc);
       assert.eql('error just happened', error.message);
     }
   };

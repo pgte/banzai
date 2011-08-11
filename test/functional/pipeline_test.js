@@ -28,28 +28,32 @@ exports.withMetaInCouch = function(beforeExit) {
     , stateHandlerCalled = false
     , jobId;
   
-  initialHandler = function(doc, done) {
+  initialHandler = function(doc, meta, done) {
     handlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
+    assert.eql({}, meta);
     done(null, doc);
   };
   
-  aHandler = function(doc, done) {
+  aHandler = function(doc, meta, done) {
     aHandlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
+    assert.eql({}, meta);
     done(null, doc);
   };
   
-  loadFunction = function(id, done) {
+  loadFunction = function(id, meta, done) {
     loadFunctionCalled = true;
     assert.eql(2, id);
+    assert.eql({}, meta);
     process.nextTick(function() {
       done(null, docs[id]);
     });
   };
   
-  saveFunction = function(doc, done) {
+  saveFunction = function(doc, meta, done) {
     saveFunctionCalled = true;
+    assert.eql({}, meta);
     process.nextTick(function() {
       assert.eql(2, doc.id);
       docs[doc.id] = doc;

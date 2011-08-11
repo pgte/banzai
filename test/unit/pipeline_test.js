@@ -27,32 +27,36 @@ exports.withMetaInMemory = function(beforeExit) {
     , stateHandlerCalled = false
     , jobId;
 
-  initialHandler = function(doc, done) {
+  initialHandler = function(doc, meta, done) {
     assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({"a":5,"b":6,"id":3}, doc);
+    assert.eql({}, meta);
     done(null, doc);
   };
 
-  aHandler = function(doc, done) {
+  aHandler = function(doc, meta, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
     assert.eql({"a":5,"b":6,"id":3}, doc);
+    assert.eql({}, meta);
     done(null, doc);
   };
 
-  loadFunction = function(id, done) {
+  loadFunction = function(id, meta, done) {
     loadFunctionCalled = true;
     assert.eql(3, id);
+    assert.eql({}, meta);
     process.nextTick(function() {
       done(null, docs[id]);
     });
   };
 
-  saveFunction = function(doc, done) {
+  saveFunction = function(doc, meta, done) {
     saveFunctionCalled = true;
     process.nextTick(function() {
       assert.eql(3, doc.id);
+      assert.eql({}, meta);
       docs[doc.id] = doc;
       done(null);
     });
@@ -117,32 +121,37 @@ exports.withoutMeta = function(beforeExit) {
     , promiseFulfilled = false
     , jobId;
 
-  initialHandler = function(doc, done) {
+  initialHandler = function(doc, meta, done) {
     assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
+    assert.eql({}, meta);
+    meta.i_am_here = 123;
     done(null, doc);
   };
 
-  aHandler = function(doc, done) {
+  aHandler = function(doc, meta, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
-    assert.eql({a:3, b:4, id:2, state: {state: "stateA", doc_id: 2}}, doc);
+    assert.eql({a:3, b:4, id:2, state: {state: "stateA", doc_id: 2, meta: {i_am_here: 123}}}, doc);
+    assert.eql({i_am_here: 123}, meta);
     done(null, doc);
   };
 
-  loadFunction = function(id, done) {
+  loadFunction = function(id, meta, done) {
     loadFunctionCalled = true;
     assert.eql(2, id);
+    assert.isNotNull(meta);
     process.nextTick(function() {
       done(null, docs[id]);
     });
   };
 
-  saveFunction = function(doc, done) {
+  saveFunction = function(doc, meta, done) {
     saveFunctionCalled = true;
+    assert.eql(2, doc.id);
+    assert.isNotNull(meta);
     process.nextTick(function() {
-      assert.eql(2, doc.id);
       docs[doc.id] = doc;
       done(null);
     });
@@ -180,7 +189,7 @@ exports.withoutMeta = function(beforeExit) {
     })
     .then(function(doc) {
       promiseFulfilled = true;
-      assert.eql({"a":3,"b":4,"id":2,"state":{"state":"stateB","doc_id":2}}, doc);
+      assert.eql({"a":3,"b":4,"id":2,"state":{"state":"stateB","doc_id":2,"meta":{"i_am_here":123}}}, doc);
     })
     .error(function(err) {
       assert.ok(false, err);
