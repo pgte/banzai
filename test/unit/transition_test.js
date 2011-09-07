@@ -167,13 +167,18 @@ exports.testEvaluateUndefinedCondition = function(beforeExit) {
 };
 
 exports.testTrigger = function(beforeExit) {
-  var toStateCalled = false;
+  var toStateCalled = false
+    , cb2 = false;
   var fromStateMock = {
-      toState: function(doc, stateDoc, newState) {
+      toState: function(doc, stateDoc, newState, done) {
+        assert.ok(! toStateCalled);
         toStateCalled = true;
         assert.eql({id: 1, a: 2}, doc);
         assert.eql({state: 'a', meta: {}}, stateDoc);
         assert.eql('b', newState);
+        process.nextTick(function() {
+          done(null);
+        });
       }
     , toErrorState: function(doc, stateDoc, error) {
       assert.ok(false, error.message);
@@ -181,27 +186,27 @@ exports.testTrigger = function(beforeExit) {
   
   };
   var transition = new Transition(fromStateMock, handler, 'b', 0);
-  transition.trigger({id: 1, a: 2}, {state: 'a'})
+  transition.trigger({id: 1, a: 2}, {state: 'a'}, function(err) {
+    assert.isNull(err)
+    cb2 = true;
+  });
   
   beforeExit(function() {
     assert.ok(toStateCalled);
+    assert.ok(cb2);
   });
 };
 
 exports.testTriggerWithErrorOnHandler = function(beforeExit) {
-  var toErrorStateCalled = false;
-  var fromStateMock = {
-    toErrorState: function(doc, stateDoc, error) {
-      toErrorStateCalled = true;
-      assert.eql({id: 1, a: 2}, doc);
-      assert.eql({state: 'a', meta: {}}, stateDoc);
-      assert.eql('error just happened', error.message);
-    }
-  };
+  var cb2 = false;
+  var fromStateMock = { };
   var transition = new Transition(fromStateMock, erroneousHandler, 'b', 0);
-  transition.trigger({id: 1, a: 2}, {state: 'a'})
+  transition.trigger({id: 1, a: 2}, {state: 'a'}, function(err) {
+    assert.isNotNull(err)
+    cb2 = true;
+  });
   
   beforeExit(function() {
-    assert.ok(toErrorStateCalled);
+    assert.ok(cb2);
   });
 };

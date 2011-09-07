@@ -4,7 +4,7 @@ var assert = require('assert')
 var noop = function() {};
 
 exports.addsTransitions = function() {
-  var state = new State('a')
+  var state = new State('a', {})
     , transition;
   state.addTransition(noop, 'b', 0);
   for(var i in state.transitions) {
@@ -22,7 +22,7 @@ exports.addsTransitions = function() {
 };
 
 exports.sortsTransitions = function() {
-  var state = new State('a');
+  var state = new State('a', {});
   state.addTransition(noop, 'b', 0);
   state.addTransition(noop, 'b', 10);
   state.addTransition(noop, 'b', 20);
@@ -43,16 +43,26 @@ exports.sortsTransitions = function() {
 };
 
 exports.handles = function(beforeExit) {
-  var state   = new State('a')
+  var pipeline = {
+          _toState: function(doc, stateDoc, state, done) {
+            toStateCalled = true;
+            process.nextTick(function() {
+              done(null);
+            });
+          }
+      }
+    , state   = new State('a', pipeline)
     , handler
     , cb = false
-    , handlerCalled = false;
+    , handlerCalled = false
+    , toStateCalled = false;
     
   handler = function(doc, meta, callback) {
     assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({a: 1, b: 2}, doc);
     assert.eql({}, meta);
+    callback(null);
   };
   state.addTransition(handler, 'b', 0);
   state.addTransition(handler, 'c', 0);
@@ -62,6 +72,7 @@ exports.handles = function(beforeExit) {
   });
   
   beforeExit(function() {
+    assert.ok(toStateCalled);
     assert.ok(handlerCalled);
     assert.ok(cb);
   });
@@ -86,26 +97,5 @@ exports.toState = function(beforeExit) {
   
   beforeExit(function() {
     assert.ok(pipelineCalled);
-  });
-};
-
-exports.toErrorState = function(beforeExit) {
-  var pipeline
-    , state
-    , toErrorStateCalled = false
-    , error = new Error('hey!');
-  
-  pipeline = {
-    _toErrorState: function(doc, stateDoc, error) {
-      toErrorStateCalled = true;
-      assert.eql({a:1, b:2}, doc);
-      assert.eql({state: 'a'}, stateDoc);
-    }
-  };
-  state = new State('a', pipeline);
-  state.toErrorState({a:1, b:2}, {state: 'a'}, 'b', error);
-  
-  beforeExit(function() {
-    assert.ok(toErrorStateCalled);
   });
 };

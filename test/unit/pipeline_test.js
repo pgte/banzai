@@ -123,8 +123,9 @@ exports.withoutMeta = function(beforeExit) {
 
   initialHandler = function(doc, meta, done) {
     assert.ok(! handlerCalled);
+    assert.ok(! aHandlerCalled);
     handlerCalled = true;
-    assert.eql({a:3, b:4, id: 2}, doc);
+    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"meta":{}}});
     assert.eql({}, meta);
     meta.i_am_here = 123;
     done(null, doc);
@@ -133,7 +134,7 @@ exports.withoutMeta = function(beforeExit) {
   aHandler = function(doc, meta, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
-    assert.eql({a:3, b:4, id:2, state: {state: "stateA", doc_id: 2, meta: {i_am_here: 123}}}, doc);
+    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"meta":{"i_am_here":123}}});
     assert.eql({i_am_here: 123}, meta);
     done(null, doc);
   };
@@ -165,6 +166,7 @@ exports.withoutMeta = function(beforeExit) {
     .on('initial', initialHandler, {
       success: 'stateA'
     , condition: function(doc) {
+        assert.ok(! conditionCalled);
         conditionCalled = true;
         return true;
       }
@@ -172,29 +174,30 @@ exports.withoutMeta = function(beforeExit) {
     .on('stateA', aHandler, {
       success: 'stateB'
     })
-    .on('stateB', function() {
+    .on('stateB', function(doc, meta, done) {
       bHandlerCalled = true;
       assert.ok(jobId);
       pipeline.state(jobId, function(err, state) {
-        console.log(state);
         assert.ok(! err);
         assert.equal('stateB', state);
+        done(null);
       });
     })
-    .push({a:1, b:2, id: 2}, function(err, id) {
+    .push({a:3, b:4, id: 2}, function(err, id) {
       assert.isNull(err);
       assert.ok(id);
       calledback = true;
       jobId = id;
     })
     .then(function(doc) {
+      assert.ok(! promiseFulfilled)
       promiseFulfilled = true;
-      assert.eql({"a":3,"b":4,"id":2,"state":{"state":"stateB","doc_id":2,"meta":{"i_am_here":123}}}, doc);
+      assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline": "test pipeline 2","state":"stateB","doc_id":2,"meta":{"i_am_here":123}}});
     })
     .error(function(err) {
       assert.ok(false, err);
     });
-
+    
   beforeExit(function() {
     assert.ok(handlerCalled);
     assert.ok(aHandlerCalled);
