@@ -1,5 +1,6 @@
 var Pipeline = require('../../lib/pipeline')
   , config   = require('../config')
+  , queue    = require('fake-queue')()
   , assert   = require('assert');
 
 var docs = {
@@ -10,7 +11,7 @@ var docs = {
 
 setTimeout(function() {
   process.exit();
-}, 10000);
+}, 2000);
 
 exports.withMetaInCouch = function(beforeExit) {
   var loadFunction
@@ -64,6 +65,7 @@ exports.withMetaInCouch = function(beforeExit) {
   pipeline = new Pipeline('test pipeline', {
       load: loadFunction
     , save: saveFunction
+    , queue: queue
   });
   pipeline
     .useForMeta('couch', config.couch_db_uri)

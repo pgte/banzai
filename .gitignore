@@ -1,3 +1,4 @@
 test/config.js
 dump.rdb
 *.log
+node_modules

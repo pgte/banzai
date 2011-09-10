@@ -1,5 +1,6 @@
 var Pipeline = require('../../lib/pipeline')
-  , assert   = require('assert');
+  , assert   = require('assert')
+  , queue    = require('fake-queue')();
 
 var docs = {
     1: {a:1, b:2, id: 1}
@@ -9,7 +10,7 @@ var docs = {
 
 setTimeout(function() {
   process.exit();
-}, 10000);
+}, 2000);
 
 exports.withMetaInMemory = function(beforeExit) {
   var loadFunction
@@ -65,6 +66,7 @@ exports.withMetaInMemory = function(beforeExit) {
   pipeline = new Pipeline('test pipeline 1', {
       load: loadFunction
     , save: saveFunction
+    , queue: queue
   });
   pipeline
     .use('memory')
@@ -161,6 +163,7 @@ exports.withoutMeta = function(beforeExit) {
   pipeline = new Pipeline('test pipeline 2', {
       load: loadFunction
     , save: saveFunction
+    , queue: queue
   });
   pipeline
     .on('initial', initialHandler, {
