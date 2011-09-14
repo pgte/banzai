@@ -12,6 +12,13 @@ setTimeout(function() {
   process.exit();
 }, 2000);
 
+function cleanTransitionDates(stateDoc) {
+  (stateDoc.transitions || []).forEach(function(transition) {
+    if (transition.start) {transition.start = "SOME DATE";}
+    if (transition.end) {transition.end = "SOME DATE";}
+  });
+}
+
 exports.withMetaInMemory = function(beforeExit) {
   var loadFunction
     , saveFunction
@@ -127,7 +134,8 @@ exports.withoutMeta = function(beforeExit) {
     assert.ok(! handlerCalled);
     assert.ok(! aHandlerCalled);
     handlerCalled = true;
-    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"meta":{}}});
+    cleanTransitionDates(doc.state);
+    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"meta":{},"transitions":[{"from":"initial","start":"SOME DATE"}]}});
     assert.eql({}, meta);
     meta.i_am_here = 123;
     done(null, doc);
@@ -136,7 +144,8 @@ exports.withoutMeta = function(beforeExit) {
   aHandler = function(doc, meta, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
-    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"meta":{"i_am_here":123}}});
+    cleanTransitionDates(doc.state);
+    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE"}]}});
     assert.eql({i_am_here: 123}, meta);
     done(null, doc);
   };
@@ -195,10 +204,11 @@ exports.withoutMeta = function(beforeExit) {
     .then(function(doc) {
       assert.ok(! promiseFulfilled)
       promiseFulfilled = true;
-      assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline": "test pipeline 2","state":"stateB","doc_id":2,"meta":{"i_am_here":123}}});
+      cleanTransitionDates(doc.state);
+      assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateB","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE","to":"stateB","end":"SOME DATE"},{"from":"stateB","start":"SOME DATE"}]}});
     })
     .error(function(err) {
-      assert.ok(false, err);
+      throw err;
     });
     
   beforeExit(function() {

@@ -86,9 +86,6 @@ exports.withMetaInCouch = function(beforeExit) {
         assert.equal('b', state);
       })
     })
-    .on('error', function() {
-      console.log(arguments);
-    })
     .push({a:1, b:2, id: 2}, function(err, id) {
       calledback = true;
       assert.isNull(err);
