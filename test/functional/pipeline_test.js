@@ -11,7 +11,7 @@ var docs = {
 
 setTimeout(function() {
   process.exit();
-}, 2000);
+}, 5000);
 
 exports.withMetaInCouch = function(beforeExit) {
   var loadFunction
