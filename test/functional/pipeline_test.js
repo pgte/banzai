@@ -1,6 +1,7 @@
 var Pipeline = require('../../lib/pipeline')
   , config   = require('../config')
   , queue    = require('fake-queue')()
+  , stateStore = require('banzai-statestore-mem')()
   , assert   = require('assert');
 
 var docs = {
@@ -8,10 +9,6 @@ var docs = {
   , 2: {a:3, b:4, id: 2}
   , 3: {a:5, b:6, id: 3}
 };
-
-setTimeout(function() {
-  process.exit();
-}, 5000);
 
 exports.withMetaInCouch = function(beforeExit) {
   var loadFunction
@@ -66,9 +63,9 @@ exports.withMetaInCouch = function(beforeExit) {
       load: loadFunction
     , save: saveFunction
     , queue: queue
+    , stateStore: stateStore
   });
   pipeline
-    .useForMeta('couch', config.couch_db_uri)
     .on('initial', initialHandler, {
       success: 'a'
     , condition: function(doc) {
@@ -89,7 +86,7 @@ exports.withMetaInCouch = function(beforeExit) {
     .push({a:1, b:2, id: 2}, function(err, id) {
       calledback = true;
       assert.isNull(err);
-      assert.equal(32, id.length);
+      assert.isNotNull(id);
       jobId = id;
     });
   

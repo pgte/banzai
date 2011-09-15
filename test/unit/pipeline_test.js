@@ -1,6 +1,7 @@
 var Pipeline = require('../../lib/pipeline')
   , assert   = require('assert')
-  , queue    = require('fake-queue')();
+  , queue    = require('fake-queue')()
+  , stateStore = require('banzai-statestore-mem')();
 
 var docs = {
     1: {a:1, b:2, id: 1}
@@ -19,7 +20,7 @@ function cleanTransitionDates(stateDoc) {
   });
 }
 
-exports.withMetaInMemory = function(beforeExit) {
+exports.withStateStore = function(beforeExit) {
   var loadFunction
     , saveFunction
     , pipeline
@@ -74,9 +75,9 @@ exports.withMetaInMemory = function(beforeExit) {
       load: loadFunction
     , save: saveFunction
     , queue: queue
+    , stateStore: stateStore
   });
   pipeline
-    .use('memory')
     .on('initial', initialHandler, {
       success: 'a'
     , condition: function(doc) {
@@ -114,7 +115,7 @@ exports.withMetaInMemory = function(beforeExit) {
   });    
 };
 
-exports.withoutMeta = function(beforeExit) {
+exports.withoutStateStore = function(beforeExit) {
   var loadFunction
     , saveFunction
     , pipeline
