@@ -43,18 +43,18 @@ exports.withMetaInCouch = function(beforeExit) {
     done(null, doc);
   };
   
-  loadFunction = function(id, meta, done) {
+  loadFunction = function(id, done) {
     loadFunctionCalled = true;
     assert.eql(2, id);
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     process.nextTick(function() {
       done(null, docs[id]);
     });
   };
   
-  saveFunction = function(doc, meta, done) {
+  saveFunction = function(doc, done) {
     saveFunctionCalled = true;
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     process.nextTick(function() {
       assert.eql(2, doc.id);
       docs[doc.id] = doc;
