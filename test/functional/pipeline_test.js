@@ -1,4 +1,4 @@
-var Pipeline = require('../../lib/pipeline')
+var banzai   = require('../../')
   , config   = require('../config')
   , queue    = require('fake-queue')()
   , stateStore = require('banzai-statestore-mem')()
@@ -59,7 +59,7 @@ exports.withMetaInCouch = function(beforeExit) {
       }
   };
   
-  pipeline = new Pipeline('test pipeline', {
+  pipeline = banzai.pipeline('test pipeline', {
       queue: queue
     , stateStore: stateStore
     , docStore: docStore
