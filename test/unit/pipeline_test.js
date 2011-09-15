@@ -21,8 +21,7 @@ function cleanTransitionDates(stateDoc) {
 }
 
 exports.withStateStore = function(beforeExit) {
-  var loadFunction
-    , saveFunction
+  var docStore
     , pipeline
     , conditionCalled = false
     , loadFunctionCalled = false
@@ -51,33 +50,34 @@ exports.withStateStore = function(beforeExit) {
     assert.eql({}, this.meta);
     done(null, doc);
   };
-
-  loadFunction = function(id, done) {
-    loadFunctionCalled = true;
-    assert.eql(3, id);
-    assert.eql({}, this.meta);
-    process.nextTick(function() {
-      done(null, docs[id]);
-    });
-  };
-
-  saveFunction = function(doc, done) {
-    saveFunctionCalled = true;
-    assert.eql({}, this.meta);
-    assert.eql(3, doc.id);
-    process.nextTick(function() {
-      docs[doc.id] = doc;
-      done(null);
-    });
+  
+  docStore = {
+      load: function(id, done) {
+        loadFunctionCalled = true;
+        assert.eql(3, id);
+        assert.eql({}, this.meta);
+        process.nextTick(function() {
+          done(null, docs[id]);
+        });
+      }
+      
+    , save: function(doc, done) {
+        saveFunctionCalled = true;
+        assert.eql({}, this.meta);
+        assert.eql(3, doc.id);
+        process.nextTick(function() {
+          docs[doc.id] = doc;
+          done(null);
+        });
+      }
   };
 
   pipeline = new Pipeline('test pipeline 1', {
-      load: loadFunction
-    , save: saveFunction
-    , queue: queue
-    , stateStore: stateStore
+    queue: queue
   });
   pipeline
+    .stateStore(stateStore)
+    .docStore(docStore)
     .on('initial', initialHandler, {
       success: 'a'
     , condition: function(doc) {
@@ -116,8 +116,7 @@ exports.withStateStore = function(beforeExit) {
 };
 
 exports.withoutStateStore = function(beforeExit) {
-  var loadFunction
-    , saveFunction
+  var docStore
     , pipeline
     , conditionCalled = false
     , loadFunctionCalled = false
@@ -150,32 +149,32 @@ exports.withoutStateStore = function(beforeExit) {
     assert.eql({i_am_here: 123}, this.meta);
     done(null, doc);
   };
-
-  loadFunction = function(id, done) {
-    loadFunctionCalled = true;
-    assert.eql(2, id);
-    assert.isNotNull(this.meta);
-    process.nextTick(function() {
-      done(null, docs[id]);
-    });
+  
+  docStore = {
+      load: function(id, done) {
+        loadFunctionCalled = true;
+        assert.eql(2, id);
+        assert.isNotNull(this.meta);
+        process.nextTick(function() {
+          done(null, docs[id]);
+        });
+      }
+  
+    , save: function(doc, done) {
+        saveFunctionCalled = true;
+        assert.eql(2, doc.id);
+        assert.isNotNull(this.meta);
+        process.nextTick(function() {
+          docs[doc.id] = doc;
+          done(null);
+        });
+      }
   };
 
-  saveFunction = function(doc, done) {
-    saveFunctionCalled = true;
-    assert.eql(2, doc.id);
-    assert.isNotNull(this.meta);
-    process.nextTick(function() {
-      docs[doc.id] = doc;
-      done(null);
-    });
-  };
-
-  pipeline = new Pipeline('test pipeline 2', {
-      load: loadFunction
-    , save: saveFunction
-    , queue: queue
-  });
+  pipeline = new Pipeline('test pipeline 2');
   pipeline
+    .queue(queue)
+    .docStore(docStore)
     .on('initial', initialHandler, {
       success: 'stateA'
     , condition: function(doc) {

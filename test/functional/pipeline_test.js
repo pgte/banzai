@@ -11,8 +11,7 @@ var docs = {
 };
 
 exports.withMetaInCouch = function(beforeExit) {
-  var loadFunction
-    , saveFunction
+  var docStore
     , pipeline
     , conditionCalled = false
     , loadFunctionCalled = false
@@ -40,30 +39,30 @@ exports.withMetaInCouch = function(beforeExit) {
     done(null, doc);
   };
   
-  loadFunction = function(id, done) {
-    loadFunctionCalled = true;
-    assert.eql(2, id);
-    assert.eql({}, this.meta);
-    process.nextTick(function() {
-      done(null, docs[id]);
-    });
-  };
-  
-  saveFunction = function(doc, done) {
-    saveFunctionCalled = true;
-    assert.eql({}, this.meta);
-    process.nextTick(function() {
-      assert.eql(2, doc.id);
-      docs[doc.id] = doc;
-      done(null);
-    });
+  docStore = {
+      load: function(id, done) {
+        loadFunctionCalled = true;
+        assert.eql(2, id);
+        assert.eql({}, this.meta);
+        process.nextTick(function() {
+          done(null, docs[id]);
+        });
+      }
+    , save:   function(doc, done) {
+        saveFunctionCalled = true;
+        assert.eql({}, this.meta);
+        process.nextTick(function() {
+          assert.eql(2, doc.id);
+          docs[doc.id] = doc;
+          done(null);
+        });
+      }
   };
   
   pipeline = new Pipeline('test pipeline', {
-      load: loadFunction
-    , save: saveFunction
-    , queue: queue
+      queue: queue
     , stateStore: stateStore
+    , docStore: docStore
   });
   pipeline
     .on('initial', initialHandler, {
