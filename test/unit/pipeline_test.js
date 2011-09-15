@@ -35,19 +35,19 @@ exports.withMetaInMemory = function(beforeExit) {
     , stateHandlerCalled = false
     , jobId;
 
-  initialHandler = function(doc, meta, done) {
+  initialHandler = function(doc, done) {
     assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({"a":5,"b":6,"id":3}, doc);
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     done(null, doc);
   };
 
-  aHandler = function(doc, meta, done) {
+  aHandler = function(doc, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
     assert.eql({"a":5,"b":6,"id":3}, doc);
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     done(null, doc);
   };
 
@@ -130,23 +130,23 @@ exports.withoutMeta = function(beforeExit) {
     , promiseFulfilled = false
     , jobId;
 
-  initialHandler = function(doc, meta, done) {
+  initialHandler = function(doc, done) {
     assert.ok(! handlerCalled);
     assert.ok(! aHandlerCalled);
     handlerCalled = true;
     cleanTransitionDates(doc.state);
     assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"meta":{},"transitions":[{"from":"initial","start":"SOME DATE"}]}});
-    assert.eql({}, meta);
-    meta.i_am_here = 123;
+    assert.eql({}, this.meta);
+    this.meta.i_am_here = 123;
     done(null, doc);
   };
 
-  aHandler = function(doc, meta, done) {
+  aHandler = function(doc, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
     cleanTransitionDates(doc.state);
     assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE"}]}});
-    assert.eql({i_am_here: 123}, meta);
+    assert.eql({i_am_here: 123}, this.meta);
     done(null, doc);
   };
 
@@ -186,7 +186,7 @@ exports.withoutMeta = function(beforeExit) {
     .on('stateA', aHandler, {
       success: 'stateB'
     })
-    .on('stateB', function(doc, meta, done) {
+    .on('stateB', function(doc, done) {
       bHandlerCalled = true;
       assert.ok(jobId);
       pipeline.state(jobId, function(err, state) {

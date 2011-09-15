@@ -2,13 +2,13 @@ var Transition = require('../../lib/transition')
   , assert     = require('assert');
 
 var noop = function() {};
-var handler = function(doc, meta, done) {
+var handler = function(doc, done) {
   process.nextTick(function() {
     done(null, doc);
   });
 };
 
-var erroneousHandler = function(doc, meta, done) {
+var erroneousHandler = function(doc, done) {
   process.nextTick(function() {
     done(new Error('error just happened'));
   });

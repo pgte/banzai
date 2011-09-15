@@ -57,11 +57,11 @@ exports.handles = function(beforeExit) {
     , handlerCalled = false
     , toStateCalled = false;
     
-  handler = function(doc, meta, callback) {
+  handler = function(doc, callback) {
     assert.ok(! handlerCalled);
     handlerCalled = true;
     assert.eql({a: 1, b: 2}, doc);
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     callback(null);
   };
   state.addTransition(handler, 'b', 0);

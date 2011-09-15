@@ -29,17 +29,17 @@ exports.withMetaInCouch = function(beforeExit) {
     , stateHandlerCalled = false
     , jobId;
   
-  initialHandler = function(doc, meta, done) {
+  initialHandler = function(doc, done) {
     handlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     done(null, doc);
   };
   
-  aHandler = function(doc, meta, done) {
+  aHandler = function(doc, done) {
     aHandlerCalled = true;
     assert.eql({a:3, b:4, id: 2}, doc);
-    assert.eql({}, meta);
+    assert.eql({}, this.meta);
     done(null, doc);
   };
   
