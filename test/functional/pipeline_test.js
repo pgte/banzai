@@ -66,13 +66,13 @@ exports.withMetaInCouch = function(beforeExit) {
   });
   pipeline
     .on('initial', initialHandler, {
-      success: 'a'
+      next: 'a'
     , condition: function(doc) {
         conditionCalled = true;
         return true;
       }})
     .on('a', aHandler, {
-        success: 'b'
+        next: 'b'
     })
     .on('b', function() {
       bHandlerCalled = true;

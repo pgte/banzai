@@ -9,7 +9,7 @@
 You can define one or more pipelines like this:
 
     var banzai = require('banzai');
-    var pipeline = banzai.pipeline('my user pipeline');
+    var pipeline = banzai.pipeline('order pipeline');
 
 The pipeline object has a chainable configuration API which you can use to later configure this object.
 
@@ -23,18 +23,71 @@ You can trigger a handle when a document state changes. This handle is a functio
 
 You can define the pipeline states and transitions like this:
 
-    var initialHandler = function(doc, done) {
-      doc.a = doc.a + 1;
-      done(null, doc);
-    };
-
     pipeline
         .on('initial', initialHandler, {
-          success: ''
+            next: 'order received email sent'
         })
-        .on('');
+        .on('order received email sent', orderEmailSentHandler, {
+            priority: 2
+          , condition: allItemsAvailable
+          , next: 'items available'
+        })
+        .on('order received email sent', confirmationEmailSentHandler, {
+            priority: 1
+          , next: 'items not available'
+        })
+        .on('items not available', itemsNotAvailableHandler)
+        .on('items available', itemsAvailableHandler, {
+          next: 'order placed'
+        })
+        .on('order placed', orderPlacedHandler, {
+          next: 'order placed email sent'
+        });
+
+
+### State handlers
+
+`initlalHandler`, `orderEmailSentHandler`, `itemsNotAvailableHandler` and all the others are functions that handle the state entry. They could look something like this;
+
+    var initialHandler = function(orderDoc, done) {
+      email.sendOrderReceivedEmail(orderDoc, done);
+    };
+
+    var confirmationEmailSentHandler = function(orderDoc, done) {
+      done();
+    };
+
+    var itemsNotAvailableHandler = function(orderDoc, done) {
+      email.sendItemsNotAvailable(orderDoc, done);
+    };
+
+
+It is necessary that the handlers call the done function once they are done. If an error occurs, done should be called with an error on the first argument. If not, the first argument should be `null`.
+
+You can see that the `confirmationEmailSentHandler` handler does not pass the document to the callback function. If that happens, the previous version of the document is used.
+
+#### Condition functions
+
+`allItemsAvailable` is a condition function, which could look something like this;
+
+    var allItemsAvailable = function(orderDoc, done) {
+      inventory.checkAvailabilityAndReserveItems(orderDoc.items, function(err, availability) {
+        if (err) { return done(err); }
+        done(null, availability.allAvailable);
+      });
+    };
+
+A condition function should either return a boolean or call the `done` function with `(err, boolean)`. The first argument should be null if there is no error and the second argument should be a boolean, telling if the condition was met or not.
 
 ### Error handling
+
+TODO!!!!
+
+### Logging
+
+TODO!!!!
+
+### Meta-data
 
 TODO!!!!
 

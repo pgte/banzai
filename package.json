@@ -1,7 +1,7 @@
 { "name" : "banzai"
 , "description" : "Library for creating document processing pipelines"
 , "tags" : ["ETL", "pipeline", "document", "state machine"]
-, "version" : "0.3.0"
+, "version" : "0.3.1"
 , "author" : "Pedro Teixeira <pedro.teixeira@gmail.com>"
 , "repository" :
   { "type" : "git"
@@ -13,7 +13,7 @@
 , "main" : "./index"
 , "devDependencies": {
     "fake-queue": "1.0.x"
-  , "banzai-statestore-mem": "git://github.com/pgte/banzai-statestore-mem.git"
+  , "banzai-statestore-mem": "1.0.x"
 }
 , "scripts": { "test": "make" }
 }

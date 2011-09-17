@@ -73,20 +73,20 @@ exports.withStateStore = function(beforeExit) {
   };
 
   pipeline = new Pipeline('test pipeline 1', {
-    queue: queue
+      queue: queue
   });
   pipeline
     .stateStore(stateStore)
     .docStore(docStore)
     .on('initial', initialHandler, {
-      success: 'a'
+      next: 'a'
     , condition: function(doc) {
         conditionCalled = true;
         return true;
       }
     })
     .on('a', aHandler, {
-      success: 'b'
+      next: 'b'
     })
     .on('b', function() {
       bHandlerCalled = true;
@@ -96,7 +96,7 @@ exports.withStateStore = function(beforeExit) {
         assert.equal('b', state);
       });
     })
-    .push({a:1, b:2, id: 3}, function(err, id) {
+    .push({a:5, b:6, id: 3}, function(err, id) {
       calledback = true;
       jobId = id;
       assert.isNull(err);
@@ -176,7 +176,7 @@ exports.withoutStateStore = function(beforeExit) {
     .queue(queue)
     .docStore(docStore)
     .on('initial', initialHandler, {
-      success: 'stateA'
+      next: 'stateA'
     , condition: function(doc) {
         assert.ok(! conditionCalled);
         conditionCalled = true;
@@ -184,7 +184,7 @@ exports.withoutStateStore = function(beforeExit) {
       }
     })
     .on('stateA', aHandler, {
-      success: 'stateB'
+      next: 'stateB'
     })
     .on('stateB', function(doc, done) {
       bHandlerCalled = true;
