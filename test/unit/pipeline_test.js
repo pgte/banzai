@@ -1,4 +1,5 @@
-var Pipeline = require('../../lib/pipeline')
+var inspect = require('util').inspect
+  , Pipeline = require('../../lib/pipeline')
   , assert   = require('assert')
   , queue    = require('fake-queue')()
   , stateStore = require('banzai-statestore-mem')();
@@ -190,7 +191,7 @@ exports.withoutStateStore = function(beforeExit) {
       bHandlerCalled = true;
       assert.ok(jobId);
       pipeline.state(jobId, function(err, state) {
-        assert.ok(! err);
+        assert.ok(! err, inspect(err && err.message) + inspect(err && err.stack));
         assert.equal('stateB', state);
         done(null);
       });
