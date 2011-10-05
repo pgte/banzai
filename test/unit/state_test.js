@@ -3,48 +3,9 @@ var assert = require('assert')
 
 var noop = function() {};
 
-exports.addsTransitions = function() {
-  var state = new State('a', {})
-    , transition;
-  state.addTransition(noop, 'b', 0);
-  for(var i in state.transitions) {
-    transition = state.transitions[i];
-    assert.equal(state, transition.fromState);
-    delete transition.fromState;
-    assert.equal(noop, transition.handler);
-    delete transition.handler;
-    assert.equal(undefined, transition.condition);
-    delete transition.condition;
-  }
-  assert.eql([{
-      "successState":"b"
-    , "priority":0 }], state.transitions);
-};
-
-exports.sortsTransitions = function() {
-  var state = new State('a', {});
-  state.addTransition(noop, 'b', 0);
-  state.addTransition(noop, 'b', 10);
-  state.addTransition(noop, 'b', 20);
-  for(var i in state.transitions) {
-    transition = state.transitions[i];
-    assert.equal(state, transition.fromState);
-    delete transition.fromState;
-    assert.equal(noop, transition.handler);
-    delete transition.handler;
-    assert.equal(undefined, transition.condition);
-    delete transition.condition;
-  }
-  assert.eql([
-      {"successState":"b","priority":20}
-    , {"successState":"b","priority":10}
-    , {"successState":"b","priority":0}
-    ], state.transitions);
-};
-
 exports.handles = function(beforeExit) {
   var pipeline = {
-          _toState: function(doc, stateDoc, state, done) {
+          toState: function(doc, stateDoc, state, done) {
             toStateCalled = true;
             process.nextTick(function() {
               done(null);
@@ -85,7 +46,7 @@ exports.toState = function(beforeExit) {
     , pipelineCalled = false;
   
   pipeline = {
-    _toState: function(doc, stateDoc, state) {
+      toState: function(doc, stateDoc, state) {
       pipelineCalled = true;
       assert.eql({a:1, b:2}, doc);
       assert.eql({state: 'a'}, stateDoc);

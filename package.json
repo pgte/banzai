@@ -1,7 +1,7 @@
 { "name" : "banzai"
 , "description" : "Library for creating document processing pipelines"
 , "tags" : ["ETL", "pipeline", "document", "state machine"]
-, "version" : "0.3.3"
+, "version" : "0.3.4"
 , "author" : "Pedro Teixeira <pedro.teixeira@gmail.com>"
 , "repository" :
   { "type" : "git"
@@ -9,7 +9,7 @@
   }
 , "bugs" :
   { "web" : "http://github.com/pgte/banzai/issues" }
-, "engines" : ["node >= 0.4.10"]
+, "engines" : ["node >= 0.4.0"]
 , "main" : "./index"
 , "devDependencies": {
     "fake-queue": "1.0.x"
