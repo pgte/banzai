@@ -14,10 +14,11 @@ setTimeout(function() {
   process.exit();
 }, 2000);
 
-function cleanTransitionDates(stateDoc) {
+function cleanTransitions(stateDoc) {
   (stateDoc.transitions || []).forEach(function(transition) {
     if (transition.start) {transition.start = "SOME DATE";}
     if (transition.end) {transition.end = "SOME DATE";}
+    delete transition.new_rev;
   });
 }
 
@@ -68,7 +69,7 @@ exports.withStateStore = function(beforeExit) {
         assert.eql(3, doc.id);
         process.nextTick(function() {
           docs[doc.id] = doc;
-          done(null);
+          done(null, doc);
         });
       }
   };
@@ -135,7 +136,7 @@ exports.withoutStateStore = function(beforeExit) {
     assert.ok(! handlerCalled);
     assert.ok(! aHandlerCalled);
     handlerCalled = true;
-    cleanTransitionDates(doc.state);
+    cleanTransitions(doc.state);
     assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"meta":{},"transitions":[{"from":"initial","start":"SOME DATE"}]}});
     assert.eql({}, this.meta);
     this.meta.i_am_here = 123;
@@ -145,7 +146,7 @@ exports.withoutStateStore = function(beforeExit) {
   aHandler = function(doc, done) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
-    cleanTransitionDates(doc.state);
+    cleanTransitions(doc.state);
     assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE"}]}});
     assert.eql({i_am_here: 123}, this.meta);
     done(null, doc);
@@ -167,7 +168,7 @@ exports.withoutStateStore = function(beforeExit) {
         assert.isNotNull(this.meta);
         process.nextTick(function() {
           docs[doc.id] = doc;
-          done(null);
+          done(null, doc);
         });
       }
   };
@@ -205,7 +206,7 @@ exports.withoutStateStore = function(beforeExit) {
     .then(function(doc) {
       assert.ok(! promiseFulfilled)
       promiseFulfilled = true;
-      cleanTransitionDates(doc.state);
+      cleanTransitions(doc.state);
       assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateB","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE","to":"stateB","end":"SOME DATE"},{"from":"stateB","start":"SOME DATE"}]}});
     })
     .error(function(err) {

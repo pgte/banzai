@@ -54,7 +54,7 @@ exports.withMetaInCouch = function(beforeExit) {
         process.nextTick(function() {
           assert.eql(2, doc.id);
           docs[doc.id] = doc;
-          done(null);
+          done(null, doc);
         });
       }
   };

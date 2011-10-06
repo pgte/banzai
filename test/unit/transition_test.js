@@ -183,6 +183,7 @@ exports.testTrigger = function(beforeExit) {
     , toErrorState: function(doc, stateDoc, error) {
       assert.ok(false, error.message);
     }
+    , name: function() { return 'test'; }
   
   };
   var transition = new Transition(fromStateMock, handler, 'b', 0);
