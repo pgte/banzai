@@ -8,4 +8,5 @@
   * When it
 * JSON interface
 * Web interface (another repo?)
+* Be able to, on a worker, to flush all work and stop accepting new work. This can be useful for deployment rollouts.
 * Build banzai-cqs (couchdb queueing)

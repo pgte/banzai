@@ -137,7 +137,7 @@ exports.withoutStateStore = function(beforeExit) {
     assert.ok(! aHandlerCalled);
     handlerCalled = true;
     cleanTransitions(doc.state);
-    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"meta":{},"transitions":[{"from":"initial","start":"SOME DATE"}]}});
+    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"initial","doc_id":2,"running":true,"meta":{},"transitions":[{"from":"initial","start":"SOME DATE"}]}});
     assert.eql({}, this.meta);
     this.meta.i_am_here = 123;
     done(null, doc);
@@ -147,7 +147,7 @@ exports.withoutStateStore = function(beforeExit) {
     assert.ok(! aHandlerCalled);
     aHandlerCalled = true;
     cleanTransitions(doc.state);
-    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE"}]}});
+    assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateA","doc_id":2,"running":true,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE"}]}});
     assert.eql({i_am_here: 123}, this.meta);
     done(null, doc);
   };
@@ -207,7 +207,7 @@ exports.withoutStateStore = function(beforeExit) {
       assert.ok(! promiseFulfilled)
       promiseFulfilled = true;
       cleanTransitions(doc.state);
-      assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateB","doc_id":2,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE","to":"stateB","end":"SOME DATE"},{"from":"stateB","start":"SOME DATE"}]}});
+      assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateB","doc_id":2,"running":false,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE"},{"from":"stateA","start":"SOME DATE","to":"stateB","end":"SOME DATE"},{"from":"stateB","start":"SOME DATE"}]}});
     })
     .error(function(err) {
       throw err;
