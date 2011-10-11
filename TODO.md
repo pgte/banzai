@@ -1,8 +1,7 @@
 # To do
 
-* Play (restart from current state)
 * Promise using hook.io to get the events on a certain document:
-  * When it
+  * When it changes state
 * JSON interface
 * Web interface (another repo?)
 * Be able to, on a worker, to flush all work and stop accepting new work. This can be useful for deployment rollouts.
