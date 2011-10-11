@@ -10,6 +10,8 @@ var docs = {
   , 3: {a:5, b:6, id: 3}
 };
 
+function noop() {}
+
 setTimeout(function() {
   process.exit();
 }, 2000);
@@ -204,7 +206,7 @@ exports.withoutStateStore = function(beforeExit) {
       jobId = id;
     })
     .then(function(doc) {
-      assert.ok(! promiseFulfilled)
+      assert.ok(! promiseFulfilled);
       promiseFulfilled = true;
       cleanTransitions(doc.state);
       assert.eql(doc, {"a":3,"b":4,"id":2,"state":{"pipeline":"test pipeline 2","state":"stateB","doc_id":2,"running":false,"meta":{"i_am_here":123},"transitions":[{"from":"initial","start":"SOME DATE","to":"stateA","end":"SOME DATE","old_rev":undefined},{"from":"stateA","start":"SOME DATE","to":"stateB","end":"SOME DATE","old_rev":undefined},{"from":"stateB","start":"SOME DATE","old_rev":undefined}]}});
@@ -226,35 +228,40 @@ exports.withoutStateStore = function(beforeExit) {
 };
 
 exports.back = function(beforeExit) {
-  var docStore = require('banzai-statestore-mem')()
+  var docStore = stateStore()
+    , _stateStore = stateStore()
     , pipeline
+    , undoCalledBack = false
     , calledback = false
-    , aHandler
     , jobId;
 
-  initialHandler = function(doc, done) {
+  
+  function initialHandler(doc, done) {
     doc.c = 1;
     done(null, doc);
-  };
+  }
 
-  aHandler = function(doc, done) {
+  function aHandler(doc, done) {
     doc.c = 2;
     done(null, doc);
-  };
+  }
   
   docStore.save({a:1, b:2}, function(err, doc) {
     if (err) { throw err; }
-
+    
     pipeline = new Pipeline('test pipeline 3');
     pipeline
       .queue(queue)
-      .stateStore(stateStore())
-      .docStore()
+      .stateStore(_stateStore)
+      .docStore(docStore)
       .on('initial', initialHandler, {
         next: 'a'
       })
       .on('a', aHandler, {
-        next: 'b'
+          undo: function(doc, done) {
+            undoCalledBack = true;
+            done();
+          }
       })
       .push(doc, function(err, id) {
         calledback = true;
@@ -263,21 +270,26 @@ exports.back = function(beforeExit) {
         assert.equal('number', typeof(id));
       })
       .then(function() {
-        pipeline.back(jobId, 'b', 'a', function(err) {
-          if (err) { throw err; }
-          setTimeout(function() {
-            docStore.load(jobId, function(err, doc) {
-              calledback = true;
-              if (err) { throw err; }
-              assert.eql(1, doc.c);
-            });
-          }, 1000);
-        })
+        setTimeout(function() {
+          pipeline.back(jobId, 'a', 'initial', function(err) {
+            if (err) { throw err; }
+            setTimeout(function() {
+              docStore.dump();
+              docStore.load(doc.id || doc._id, function(err, doc) {
+                calledback = true;
+                if (err) { throw err; }
+                assert.ok(doc, 'doc does not exist');
+                assert.eql(1, doc.c);
+              });
+            }, 1000);
+          });
+        }, 1000);
       });
   });
   
 
   beforeExit(function() {
     assert.ok(calledback);
+    assert.ok(undoCalledBack);
   });    
 };
