@@ -12,10 +12,6 @@ var docs = {
 
 function noop() {}
 
-setTimeout(function() {
-  process.exit();
-}, 2000);
-
 function cleanTransitions(stateDoc) {
   (stateDoc.transitions || []).forEach(function(transition) {
     if (transition.start) {transition.start = "SOME DATE";}
@@ -264,7 +260,6 @@ exports.back = function(beforeExit) {
           }
       })
       .push(doc, function(err, id) {
-        calledback = true;
         jobId = id;
         assert.isNull(err);
         assert.equal('number', typeof(id));
@@ -274,7 +269,6 @@ exports.back = function(beforeExit) {
           pipeline.back(jobId, 'a', 'initial', function(err) {
             if (err) { throw err; }
             setTimeout(function() {
-              docStore.dump();
               docStore.load(doc.id || doc._id, function(err, doc) {
                 calledback = true;
                 if (err) { throw err; }
@@ -292,4 +286,64 @@ exports.back = function(beforeExit) {
     assert.ok(calledback);
     assert.ok(undoCalledBack);
   });    
+};
+
+exports.play = function(beforeExit) {
+  var docStore = stateStore()
+    , _stateStore = stateStore()
+    , calledback = false
+    , pipeline
+    , jobId;
+
+  
+  function initialHandler(doc, done) {
+    doc.c = 1;
+    done(null, doc);
+  }
+
+  function aHandler(doc, done) {
+    doc.c = 2;
+    done(null, doc);
+  }
+  
+  docStore.save({a:1, b:2}, function(err, doc) {
+    if (err) { throw err; }
+
+    pipeline = new Pipeline('test pipeline 4');
+    pipeline
+      .queue(queue)
+      .stateStore(_stateStore)
+      .docStore(docStore)
+      .on('initial', initialHandler, {
+        next: 'a'
+      })
+      .on('a', aHandler)
+      .push(doc, function(err, id) {
+        jobId = id;
+        assert.isNull(err);
+      })
+      .then(function() {
+        setTimeout(function() {
+          pipeline.back(jobId, 'a', 'initial', function(err) {
+            assert.ok(! err);
+            setTimeout(function() {
+              docStore.load(doc.id, function(err, doc) {
+                assert.isNull(err);
+                assert.eql(1, doc.c);
+                pipeline.play(jobId, function(err) {
+                  assert.isUndefined(err);
+                  setTimeout(function() {
+                    docStore.load(doc.id, function(err, doc) {
+                      calledback = true;
+                      assert.isNull(err);
+                      assert.eql(2, doc.c);
+                    });
+                  }, 1000);
+              });
+              });
+            }, 1000);
+          });
+        }, 1000);
+      });
+  });
 };

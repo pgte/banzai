@@ -13,7 +13,7 @@
 , "main" : "./index"
 , "devDependencies": {
     "fake-queue": "1.0.x"
-  , "banzai-statestore-mem": "1.0.x"
+  , "banzai-statestore-mem": "1.1.x"
 }
 , "scripts": { "test": "make" }
 }
