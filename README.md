@@ -106,14 +106,14 @@ A doc store is an object that has to have these 2 functions:
 
 By convention, you should expect doc.id or doc._id if the document exists and update it.
 
-There already exists a store for CouchDB named [banzai-docstore-couchdb]. You can install it like this:
+There already exists a store for CouchDB named [banzai-couchdb-store]. You can install it like this:
 
     $ cd <PROJECT ROOT DIR>
-    $ npm install banzai-docstore-couchdb
+    $ npm install banzai-couchdb-store
 
 ... and use it like this:
 
-    var banzaiDocstoreCouchdb = require('banzai-docstore-couchdb');
+    var banzaiDocstoreCouchdb = require('banzai-couchdb-store');
     var docStore = banzaiDocstoreCouchdb({
         url: 'http://localhost:5984'
       , db: 'docs'
@@ -133,14 +133,14 @@ A state store is an object that has to have these 2 functions:
 
 By convention, you should expect doc.id or doc._id if the document exists and update it.
 
-There already exists a state store for CouchDB named [banzai-statestore-couchdb]. You can install it like this:
+There already exists a state store for CouchDB named [banzai-couchdb-store]. You can install it like this:
 
     $ cd <PROJECT ROOT DIR>
-    $ npm install banzai-statestore-couchdb
+    $ npm install banzai-couchdb-store
 
 ... and use it like this:
 
-    var banzaiStatestoreCouchdb = require('banzai-statestore-couchdb');
+    var banzaiStatestoreCouchdb = require('banzai-couchdb-store');
     var stateStore = banzaiDocstoreCouchdb({
         url: 'http://localhost:5984'
       , db: 'states'
@@ -161,5 +161,4 @@ Each pipeline has a work queue, which is an object that has to have these functi
   * state_name
   * callback: a function with the signature (err, jobData).
 
-[banzai-docstore-couchdb]: https://github.com/pgte/banzai-docstore-couchdb
-[banzai-statestore-couchdb]: https://github.com/pgte/banzai-statestore-couchdb
+[banzai-couchdb-store]: https://github.com/pgte/banzai-couchdb-store
