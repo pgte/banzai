@@ -79,18 +79,6 @@ You can see that the `confirmationEmailSentHandler` handler does not pass the do
 
 A condition function should either return a boolean or call the `done` function with `(err, boolean)`. The first argument should be null if there is no error and the second argument should be a boolean, telling if the condition was met or not.
 
-### Error handling
-
-TODO!!!!
-
-### Logging
-
-TODO!!!!
-
-### Meta-data
-
-TODO!!!!
-
 ## Document Store
 
 Each pipeline has a document store, which is where the docs that are processed are stored.
