@@ -34,8 +34,6 @@ You should also install the [banzai-redis] package to support queueing.
 
 You should install Redis - it has to be a version that supports the [BRPOPLPUSH] command.
 
-We have a `PubSub` model where publishers (e.g. our api) place things in a priority queue that then gets consumed by a pipeline worker. A pipeline worker subscribes to the work queue and when it finds a task that needs to be done starts working on it.
-
 # Terminology
 
 ## Pipeline
