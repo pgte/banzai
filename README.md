@@ -1,6 +1,40 @@
 # Intro
 
-`Banzai` (short for BanzaiETL) is a document processing framework. It operates by defining pipelines. We have a `PubSub` model where publishers (e.g. our api) place things in a priority queue that then gets consumed by a pipeline worker. A pipeline worker subscribes to the work queue and when it finds a task that needs to be done starts working on it. A pipeline is basically a state machine that allows you to execute multiple operations on a single file. You can use it to enrich documents with stuff from the internet, convert images, replicate a database to another datastore, etc. In our case we use the pipelines to process emails, convert pdf attachments to images, resize images, process information we get from mechanical turk, etc.
+`Banzai` (short for BanzaiETL) is a document processing framework. It operates by defining pipelines.
+
+You define a pipeline, launch a worker or more, push a document and it goes through the pipeline, ending in an ended (or in a 'error') state.
+A pipeline is basically a state machine that allows you to execute multiple operations on a single file
+You can use it to enrich documents with stuff from the internet, convert images, replicate a database to another datastore, etc. In our case we use the pipelines to process emails, convert pdf attachments to images, resize images, process information we get from mechanical turk, etc.
+
+You can programmatically roll-back a given document to a given state and play it again. For instance, if your document yields an error and you find out the error is because of a bug in your code, or you simply want to try that document again, you roll it back to a previous state and play the document.
+
+## Architecture
+
+Each pipeline has a _Doc Store_. This is where the documents are saved into. The Doc Store can be a CouchDB database (if you use banzai-couchdb-store), or you can define your own if you define an object that has a `load` and a `save` functions (read below).
+
+Each pipeline can have a _State Store_. This is where the state for a document in a pipeline is stored. The State Store can be, again, a CouchDB database (if you use banzai-couchdb-store), or you can again define your own if you define an object that has a `load` and a `save` functions (read below).
+
+_Banzai Clients_ just get a handle on the pipeline and push document to it.
+
+_Banzai Workers_ are listening for work on a queue. They listen for state transitions they are interested in and process them. Then the document transitions state, is stored and another worker can take it from there.
+
+So, workers listen on a queue. Right now we have Redis queueing support by installing the banzai-redis package.
+
+## Install
+
+    npm install banzai
+
+If you want to work with a CouchDB State or Doc stores you need to:
+
+    npm install banzai-couchdb-store
+
+You should also install the [banzai-redis] package to support queueing.
+
+    npm install banzai-redis
+
+You should install Redis - it has to be a version that supports the [BRPOPLPUSH] command.
+
+We have a `PubSub` model where publishers (e.g. our api) place things in a priority queue that then gets consumed by a pipeline worker. A pipeline worker subscribes to the work queue and when it finds a task that needs to be done starts working on it.
 
 # Terminology
 
@@ -149,4 +183,48 @@ Each pipeline has a work queue, which is an object that has to have these functi
   * state_name
   * callback: a function with the signature (err, jobData).
 
+# Meta-data
+
+Each job can store meta-data pertaining to the current document.
+
+It's accessible to state handlers inside the `this.meta` property.
+
+# Pipeline options
+
+When defining a pipeline you can pass a second argument with some options:
+
+* stateStore - the state store. By default is `undefined`. If stateStore is `undefined` then the state will be embedded in document.
+* docStore - the document store. No default value. Must be defined.
+* embedStateInDocProp - What property to embed the state in the document. Only used if `stateStore` is not used. Defaults to 'state'.
+* initialState - defaults to 'initial'
+* errorState   - The state the document is put if an error occurs. Defaults to 'error'.
+* queue - the queueing mechanism. You can use `require('banzai-redis')` as value.
+* info - logger function for `info`-log-level messages that accepts a string as sole argument and logs it. Defaults to `no operation`.
+* error - logger function that accepts a string as sole argument and logs it. Defaults to `console.log`.
+* verbose - logger function for `verbose`-log-level messages that accepts a string as sole argument and logs it. Defaults to `no operation`. Prints transitions and some other interesting stuff.
+
+# Error handling
+
+If an error occurs, the document is set into the error state. You can observe the errors - they are embedded into the state document `errors` property.
+
+# Meta-info
+
+All the transitions are stored inside the state document, inside the `transitions` property.
+
 [banzai-couchdb-store]: https://github.com/pgte/banzai-couchdb-store
+[banzai-redis]: https://github.com/pgte/banzai-redis
+[BRPOPLPUSH]: http://redis.io/commands/brpoplpush
+
+# License
+
+(The MIT License)
+
+Copyright (c) 2011 Pedro Teixeira. http://about.me/pedroteixeira
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+FUCK YEAH.
