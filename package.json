@@ -8,13 +8,13 @@
   , "url" : "http://github.com/pgte/banzai.git"
   }
 , "bugs" :
-  { "web" : "http://github.com/pgte/banzai/issues" }
+  { "url" : "http://github.com/pgte/banzai/issues" }
 , "engines" : ["node >= 0.4.0"]
 , "main" : "./index"
 , "devDependencies": {
     "fake-queue": "1.0.x"
   , "banzai-statestore-mem": "1.1.x"
-  , "espresso": "0.7.x"
+  , "expresso": "0.9.x"
 }
 , "scripts": { "test": "make" }
 }

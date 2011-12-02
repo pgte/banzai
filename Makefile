@@ -1,10 +1,10 @@
 all: test
 
 unittests:
-	expresso -g test/unit/*_test.js
+	node_modules/.bin/expresso -g test/unit/*_test.js
 
 functionaltests:
-	expresso -g test/functional/*_test.js
+	node_modules/.bin/expresso -g test/functional/*_test.js
 
 test: unittests functionaltests
 
