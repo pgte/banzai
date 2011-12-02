@@ -1,4 +1,4 @@
-# Intro
+# Banzai [![Build Status](https://secure.travis-ci.org/pgte/banzai.png)](http://travis-ci.org/pgte/banzai)
 
 `Banzai` (short for BanzaiETL) is a document processing framework. It operates by defining pipelines.
 
